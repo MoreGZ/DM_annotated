@@ -1,490 +1,709 @@
 <template>
-	<div class="main1 word_note">
-        <section class="left">
-            <p>
-                {{getData[currentPage-1]['word']}}
-                <span v-for="(word,index) in getData2[currentPage-1]">
-                    {{word}} 
-                    <img src="../assets/f00d.png" height="512" width="512"  v-on:click="deleteData2(index,word)"/>
-                </span>
-            </p>
-            <div class="selectBox">
-                <label for="" id="type_label" v-bind:style="{transform:typePosition}">type</label>
-                <select name="" id="" value="" v-on:change="addNote1();clearTitle()" v-model="editData[currentPage-1]['type']" v-on:focus="focusAnimate2" v-on:blur="blurAnimate2">
-                    <option value=""></option>
-                    <option value="name">人名</option>
-                    <option value="organization">组织、机构名</option>
-                    <option value="local">地方名</option>
-                    <option value="entity">其他实体</option>
-                    <option value="abbr">缩略语</option>
-                    <option value="error">文本错误</option>
-                    <option value="foreign">外来语</option>
-                    <option value="plural">复数名词</option>
-                    <option value="phrase">固定词组</option>
-                    <option value="emphasis">表强调</option>
-                    <option value="other">其他</option>
+	<div id="type">
+		<section class="text">
+			<div class="labelBox">
+                <label>context1</label>
+                <p id="p1">{{sourceData[currentPage-1].context[0]}}</p>
+            </div>
+			<div class="labelBox">
+                <label>context2</label>
+                <p id="p2">{{sourceData[currentPage-1].context[0]}}</p>
+            </div>
+			<div class="labelBox">
+                <label>context3</label>
+                <p id="p3">{{sourceData[currentPage-1].context[0]}}</p>
+            </div>
+		</section>
+		<section class="input">
+			<div class="words">
+				<p>
+					<span class="arrowleft" @click="lastWord">&lsaquo;</span>
+					{{currentWord}}
+					<img src="../assets/f00d.png" height="12" width="12" 
+						v-if="pages[currentPage-1]!=1"
+						@click="deleteAddAnnotated2">
+					<span class="arrowright" @click="nextWord">&rsaquo;</span>
+				</p>
+			</div>
+			<div class="selectBox">
+                <label id="type_label" v-bind:style="{transform:typePosition}">type</label>
+                <select
+                	v-model="editData[currentPage-1][pages[currentPage-1]-1]['type']"
+                	@change="addAnnotated1();bindType()">
+                    <option 
+                    	v-for="(value,key) in types" 
+                    	:value="value"
+                    	@focus="focusAnimate(0)" 
+                    	@blur="blurAnimate(0)">
+                    	{{key}}
+                    </option>
                 </select>
                 <div class="line"></div>
-                <div class="strongLine" v-bind:style="{width:width2+'px',transition: 'width 0.2s linear'}"></div>
+                <div class="strongLine" :style="{width:lineWidth[0]+'%',transition: 'width 0.2s linear'}"></div>
             </div>
-            <div class="textBox">
-                <label for="">备注</label>
-                <textarea 
-                	v-on:change="addNote2" 
-                	v-model="editData[currentPage-1]['note']" 
-                	v-bind:readonly="ifDisable" 
-                	v-on:focus="focusAnimate1" 
-                	v-on:blur="blurAnimate1">
-                </textarea>
-                <div class="line"></div>
-                <div class="strongLine" v-bind:style="{width:width1+'px',transition: 'width 0.2s linear'}"></div>
-            </div>
-            <div class="addText">
-                <label for="">{{nowTitle}}</label>
+            <div class="supplement">
+                <label for="">{{SupplementTitle}}</label>
                 <input type="text" 
-                	v-bind:readonly="ifDisable2" 
-                	v-on:focus="focusAnimate4" 
-                	v-on:blur="blurAnimate4"
-                	v-model="editData[currentPage-1]['addition']"
-                	v-on:change="addNote1">
+                	v-model="editData[currentPage-1][pages[currentPage-1]-1]['addition']"
+                	:readonly="ifHasSupplement"
+                	@change="addAnnotated1"
+                	@focus="focusAnimate(1)" 
+                	@blur="blurAnimate(1)"
+                	>
                 </input>
                 <div class="line"></div>
-                <div class="strongLine" v-bind:style="{width:width4+'px',transition: 'width 0.2s linear'}"></div>
+                <div class="strongLine" :style="{width:lineWidth[1]+'%',transition: 'width 0.2s linear'}"></div>
+            </div>
+            <div class="textBox">
+                <label>备注</label>
+                <textarea 
+                	v-model="editData[currentPage-1][pages[currentPage-1]-1]['note']"
+                	:readonly="ifIsElse"
+                	@change="addAnnotated1"
+                	@focus="focusAnimate(2)" 
+                	@blur="blurAnimate(2)"
+                	>
+                </textarea>
+                <div class="line"></div>
+                <div class="strongLine" :style="{width:lineWidth[2]+'%',transition: 'width 0.2s linear'}"></div>
             </div>
             <div class="addText">
                 <label for="">顺便标注</label>
-                <input type="text" v-model="inputData" v-on:keyup.enter="addData2" v-on:keyup.esc="cansolAddData2" v-on:focus="focusAnimate3" v-on:blur="blurAnimate3"></input>
+                <input type="text" 
+                	v-model="inputData"
+                	@keyup.enter="addAnnotated2"
+                	@keyup.esc="escAddAnnotated2"
+                	@focus="focusAnimate(3)" 
+                	@blur="blurAnimate(3)"
+                ></input>
                 <div class="line"></div>
-                <div class="strongLine" v-bind:style="{width:width3+'px',transition: 'width 0.2s linear'}"></div>
+                <div class="strongLine" :style="{width:lineWidth[3]+'%',transition: 'width 0.2s linear'}"></div>
             </div>
-        </section>
-        <section class="right">
-            <div class="labelBox">
-                <label>context1</label>
-                <p id="p1">{{getData[currentPage-1]['context'][0]}}</p>
-            </div>
-            <div class="labelBox">
-                <label>context2</label>
-                <p id="p2">{{getData[currentPage-1]['context'][1]}}</p>
-            </div>
-            <div class="labelBox">
-                <label>context3</label>
-                <p id="p3">{{getData[currentPage-1]['context'][2]}}</p>
-            </div>
-        </section>
-        <div class="buttons" style="position: relative;">
-            <span style="position: absolute;left: 0px;top:20px;font-size: 14px">你总共已标注<span style="color:#39c;font-size:16px;font-weight:800;">{{count}}</span>个词</span>
-            <div class="buttonsBox">
-                <button v-on:click="lastPageHandle">上一个</button>
-                <button v-on:click="sendDataHandle">提交</button>
-                <button v-on:click="nextPageHandle">下一个</button>
-            </div>
-            <span style="position: absolute;right: 0px;top:20px;font-size: 20px">{{currentPage}}/{{getData.length}}</span>
+            <div class="Hyphen">
+				<label for="Hyphen">连字符不可去掉</label>
+				<input type="checkbox" name="" id="Hyphen"  
+					v-model="editData[currentPage-1][pages[currentPage-1]-1]['hyphen']"
+					@change="addAnnotated1"
+				>
+			</div>
+		</section>
+		<div class="buttons">
+            <button @click="lastPage">上一个</button>
+            <button @click="sendDataHandle">提交</button>
+            <button @click="nextPage">下一个</button>
         </div>
-    </div>
+        <span class="page">{{currentPage}}/{{editData.length}}</span>
+        <span class="count">你总共已标注<span>{{count}}</span>个词</span>
+	</div>
 </template>
 
 <script>
-	import $ from 'jquery'
-	export default {
-		props:["username"],
-	    data:function(){
-	        return {
-	        	// 获取的数据组的数据源
-	            getData:[],
-	            //储存每一页的顺便标注
-	            getData2:[],
+import store from '../store/index.js';
+import {mapState} from "vuex";
+import $ from 'jquery';
 
-	            //要发送的已经标注好的数据集（已有数据集和顺便标注）
-	            sendData:[],
-	            sendData2:[],
+export default {
+	data:function(){
+		//初始化原始数据
+		var sourceData = [];
+		for(var i=0;i<25;i++){
+			var obj = {};
+			obj.context = [];
+			obj.id = "";
+			obj.word = "";
+			sourceData.push(obj);
+		}
 
-	            //记录存在于sendData中的数据的索引
-	            sendDataA:[],
+		//初始化编辑记录数据
+		var editData = [];
+		for(var i = 0;i < 25;i++){
+			var arr = []
+			arr[0] = {};
+			arr[0]["id"] = "";
+			arr[0]["word"] = "";
+			arr[0]["type"] = "";
+			arr[0]["note"] = "";
+			arr[0]["addition"] = "";
+			arr[0]["hyphen"] = false;
+			arr[0]["annotator"] = this.userName;
+			editData.push(arr);
+		}
+		// console.log(editData);
 
-	            // 当前数据组的编辑记录
-	            editData:[],
+		////初始化pages
+		var pages = [];
+		for(var i=0;i<25;i++){
+			pages.push(1);
+		}
+		return {
+			//原始数据
+			sourceData:sourceData,
+			//编辑记录数据
+			editData:editData,
+			//要发送的已经标注好的数据集（已有数据集和顺便标注）
+			sendData:[],
+			//当前页面
+			currentPage:1,
+			//每个页面的上当前标注词的索引
+			pages:pages,
+			//总标注数
+			count:0,
+			//顺便标注的输入框的内容
+			inputData:"",
+			//补齐输入框的标题
+			titleObject:{
+				"name":"补齐完整",
+            	"organization":"补齐完整",
+            	"local":"补齐完整",
+            	"abbr":"请给出完整词组",
+            	"error":"请给出拼写正确的词",
+            	"entity":"请给出补充说明",
+            	"foreign":"null",
+            	"plural":"null",
+            	"phrase":"null",
+            	"emphasis":"null",
+            	"other":"null",
+            	"pessive":"null",
+            	"":"null"
+			},
+			// 动画横线的长度
+			lineWidth:['0','0','0','0'],
+			//标注类型和对应的值
+			types:{
+				'':'',
+				'人名':'name',
+				'组织、机构名':'organization',
+				'地方名':'local',
+				'其他实体':'entity',
+				'缩略语':'abbr',
+				'文本错误':'error',
+				'外来语':'foreign',
+				'复数名词':'plural',
+				'固定词组':'phrase',
+				'表强调':'emphasis',
+				'动词被动式':'pessive',
+				'其他':'other',
+			}
+		}
+	},
+	store,
+	computed:{
+		//是否可以进行备注
+		ifIsElse:function(){
+			return this.currentType=="other" ? false : true;
+		},
+		//是否可以进行补充
+		ifHasSupplement:function(){
+			return this.SupplementTitle=="null" ? true : false;
+		},
+		currentType:function(){
+			return this.editData[this.currentPage-1][this.pages[this.currentPage-1]-1]['type'];
+		},
+		//补充标注的title
+		SupplementTitle:function(){
+			return this.titleObject[this.currentType];
+		},
+        typePosition:function () {
+        	return this.editData[this.currentPage-1][this.pages[this.currentPage-1]-1]['type']=="" ? 'translate(0,25px)': 'translate(0,1px)'
+        },
+        currentWord:function(){
+        	var l = this.editData[this.currentPage-1][this.pages[this.currentPage-1]-1]['word'];
+        	return l.length>11 ? l.slice(0, 11)+"..." : l
+        },
+        textColor:function(){
+        	// console.log(this.pages[this.currentPage-1]==1);
+        	return this.pages[this.currentPage-1]==1 ? "black" : "red";
+        },
+        ...mapState([
+        	"userName"
+        ])
+	},
+	watch:{
+		sourceData:function(newSourceData){
+			this.resetPage();
+			this.resetEditData();
+			this.markWord();
+		},
+		currentPage:function(){
+			this.markWord();
+		},
+		pages:function(){
+			this.markWord();
+		}
+	},
+	methods:{
+		showData:function(){
+			
+		},
+		//向服务器发送数据
+		sendDataHandle:function(){
+			var vm = this;
+			$.post("/api/sendData",{
+                data:this.sendData,
+            },function(data,status){
+            	var res = JSON.parse(data);
+				if(res.status==0){
+					alert("提交失败");
+					return;
+				}
 
-	            //当前页面
-	            currentPage:1,
+				vm.count = res.count;
+				vm.sendData = [];
+            })
+			// this.$http.post("/api/sendData",{'data':vm.sendData}).then((response)=>{
+			// 	console.log(vm.sendData);
+			// 	var res = response.body;
+			// 	if(res.status==0){
+			// 		alert("提交失败");
+			// 		return;
+			// 	}
 
-	            // 动画横线的长度
-	            width1:0,
-	            width2:0,
-	            width3:0,
-	            width4:0,
+			// 	this.count = res.count;
+			// 	this.sendData = [];
+			// },(response)=>{
+			// 	alert(response.status);
+			// })
+		},
+		//下一页
+		nextPage:function(){
+			var vm = this;
+			//判断是否最后一页
+			var np = this.currentPage == this.editData.length ? "nextDatas" : "nextPage";
+			var functionObj = {
+				nextPage:function(){
+					vm.currentPage++;
+				},
+				nextDatas:function(){
+					var l = vm.sendData.length;
+					if(l>0){
+						alert('当前数据组有数据未提交,请先提交');
+						return;
+					}
+					vm.apiHandler();
+					vm.resetPage();
+				}
+			}
+			functionObj[np]();
+		},
+		//上一页
+		lastPage:function(){
+			//判断是否为第一页
+			var lp = this.currentPage == 1 ? true : false;
+			if(!lp) this.currentPage--;
+		},
+		//添加标注
+		addAnnotated1:function(){
+			var vm = this;
+			var checkObj = vm.check1();
+			var obj = vm.editData[vm.currentPage - 1][vm.pages[vm.currentPage - 1] - 1]
 
-	            //统计当前用户的总标注数量
-	            count:"",
+			var functionObj = [
+				function(){
+					// console.log("xxx");
+					vm.sendData.push(obj);
+				},
+				function(){
+					// console.log(checkObj.index);
+					vm.sendData[checkObj.index] = obj;
+				}
+			]
 
-	            // 顺便标注的输入框的内容
-	            inputData:"",
+			functionObj[checkObj.status]();
+			// console.log(this.editData);
+			// console.log(this.sendData);
+		},
+		//添加顺便标注
+		addAnnotated2:function(){
+			if(this.inputData=="") return;
+			var inputData = this.inputData;
+			this.inputData = "";
 
-	            //补齐标题
-	            titleObj:{
-	            	"name":"补齐完整",
-	            	"organization":"补齐完整",
-	            	"local":"补齐完整",
-	            	"abbr":"请给出完整词组",
-	            	"error":"请给出拼写正确的词",
-	            	"entity":"null",
-	            	"foreign":"null",
-	            	"plural":"null",
-	            	"phrase":"null",
-	            	"emphasis":"null",
-	            	"other":"null",
-	            	"":"null"
-	            }
-	        }
-	    },
-	    computed:{
-	        ifDisable:function () {
-	            if(this.editData[this.currentPage-1]['type']=="other"){
-	                return false;
-	            }else{
-	                return true;
-	            }
-	        },
-	        nowType:function(){
-	        	return this.editData[this.currentPage-1].type;
-	        },
-	        nowTitle:function(){
-	        	return this.titleObj[this.nowType];
-	        },
-	        ifDisable2:function(){
-	        	return this.nowTitle=="null" ? true : false ;
-	        },
-	        ifInSendData:function () {
-	            var a = false;
-	            for(var x=0;x<this.sendDataA.length;x++){
-	                if(this.sendDataA[x]==this.currentPage) return true;
-	            }
-	            return a;
-	        },
-	        typePosition:function () {
-	            if(this.editData[this.currentPage-1]['type']==""){
-	                return 'translate(0,25px)';
-	            }else {
-	                return 'translate(0,1px)';
-	            }
-	        }
-	    },
-	    methods:{
-	        sendDataHandle:function(){
-	            var vm = this;
-	            console.log(this.sendData.length);
-	            console.log(this.sendData2);
-	            $.post("/label/home/index/save",{
-	                data:this.sendData,
-	                data2:this.sendData2,
-	            },function(data,status){
-	                var a = JSON.parse(data);
-	                if(a.status==1){
-	                    //alert("提交成功");
-	                    vm.sendData = [];
-	                    vm.sendData2 = [];
-	                    vm.sendDataA = [];
-	                }else{
-	                    alert("提交失败");
-	                }
+			var obj = {};
+			obj["id"] = "";
+			obj["word"] = inputData;
+			obj["type"] = this.editData[this.currentPage-1][this.pages[this.currentPage-1]-1].type;
+			obj["note"] = "";
+			obj["addition"] = "";
+			obj["hyphen"] = false;
+			obj["annotator"] = this.userName;
+			
+			var vm = this;
+			var checkResult = this.check2(inputData);
+			var checkResult2 = this.check1(inputData);
 
-	                vm.count = a.count;
-	                console.log(vm.count);
-	            })
-	        },
-	        getDataHandle:function(){
-	            var vm = this;
-	            $.post("/api/data",{
-	            },function(data,status){
-	                vm.getData = [];
-	                vm.editData = [];
-	                var a = JSON.parse(data);
-	                for (var i=0;i<a.data.length;i++) {
-	                    vm.getData.push(a.data[i]);
-	                    var obj = {};
-	                    obj.id = a.data[i]["id"];
-	                    obj.type = "",
-	                    obj.note = "",
-	                    obj.addition = "",
-	                    obj.annotator=vm.username;
-	                    vm.editData.push(obj);
-	                }
-	                //数据组接收，编辑数据初始化完成
-	                console.log("接收成功")
-	                vm.createGetData2();
+			var functionObj1 = [
+				function(){
+					vm.sendData.push(obj);
+				},
+				function(){
+					vm.sendData[checkResult2.index] = obj;
+				}
+			]
 
-	                vm.count = a.count;
-	            })
-	        },
-	        lastPageHandle:function(){
-	            if(this.currentPage==1){
-	                alert("已经是第一页了")
-	            }else {
-	                this.currentPage--;
-	            }
-	        },
-	        nextPageHandle:function(){
-	            if(this.currentPage==this.getData.length){
-	                var vm = this;
-	                var c = confirm("已经是最后一页了，请问是否获取下一个数据集")
-	                if(c){
-	                    if(this.sendData.length>0){
-	                        var c2 = confirm("有数据没有提交，是否提交数据");
-	                        if(c2){
-	                            $.post("/label/home/index/save",{
-	                                data2:vm.sendData2,
-	                                data:vm.sendData
-	                            },function(data,status){
-	                                var a=JSON.parse(data);
-	                                if(a.status==1){
-	                                    //alert("提交成功");
-	                                    vm.sendData = [];
-	                                    vm.sendData2 = [];
-	                                    vm.sendDataA = [];
-	                                    vm.getDataHandle();
-	                                }else{
-	                                    alert("提交失败");
-	                                }
-	                            })
-	                        }else {
-	                            vm.getDataHandle();
-	                        }
-	                    }else{
-	                        vm.getDataHandle();
-	                    }
-	                    this.currentPage = 1;
-	                }
-	            }else {
-	                this.currentPage++;
-	            }
-	        },
-	        addNote1:function(){
-	            if(!this.ifInSendData){
-	                this.sendData.push(this.editData[this.currentPage-1])
-	                this.sendDataA.push(this.currentPage);
-	            }else{
-	                for(var x=0;x<this.sendDataA.length;x++){
-	                    if(this.sendDataA[x]==this.currentPage){
-	                       this.sendData[x]=this.editData[this.currentPage-1]
-	                    }
-	                }
-	            }
-	            if(!(this.editData[this.currentPage-1]['type']=="other")){
-	                this.editData[this.currentPage-1]['note']=""
-	            }
-	            this.addNote4();
-	            console.log(this.sendData);
-	            console.log(this.sendData2);
-	            this.checkWord2();
-	        }, 
-	        addNote2:function(){
-	            if(!this.ifInSendData){
-	                this.sendData.push(this.editData[this.currentPage-1])
-	                this.sendDataA.push(this.currentPage);
-	            }else {
-	                for(var x=0;x<this.sendDataA.length;x++){
-	                    if(this.sendDataA[x]==this.currentPage){
-	                        this.sendData[x]=this.editData[this.currentPage-1]
-	                    }
-	                }
-	            }
-	            this.addNote4();
-	            console.log(this.sendData);
-	            console.log(this.sendData2);
-	            this.checkWord2();
-	        },
-	        addNote3:function(word){
-	            var k = {};
-	            var vm = this;
-	            k.word = word;
-	            k.type = this.editData[this.currentPage-1]["type"],
-	            k.note = this.editData[this.currentPage-1]["note"],
-	            k.addition = this.editData[this.currentPage-1]["addition"];
-	            k.annotator=vm.username;
-	            this.sendData2.push(k);
-	        },
-	        addNote4:function(){
-	            for(var i=0;i<this.getData2[this.currentPage-1].length;i++){
-	                var k = {};
-	                var vm = this;
-	                k.word = this.getData2[this.currentPage-1][i];
-	                k.type = this.editData[this.currentPage-1]["type"],
-	                k.note = this.editData[this.currentPage-1]["note"],
-	            	k.addition = this.editData[this.currentPage-1]["addition"];
-	                k.annotator=vm.username;
-	                this.sendData2.push(k);
-	            }
-	        },
-	        clearTitle:function(){
-				this.editData[this.currentPage-1].addition = "";
-	        },
-	        deleteNote:function(word){
-	            for(var i=0;i<this.sendData2.length;i++){
-	                if(this.sendData2[i]['word']==word){
-	                    this.sendData2.splice(i, 1);
-	                }
-	            }
-	        },
-	        blurAnimate1:function () {
-	            this.width1 = 0;
-	        },
-	        focusAnimate1:function () {
-	            if(!this.ifDisable){
-	                this.width1 = 230
-	            }
-	        },
-	        blurAnimate2:function () {
-	            this.width2 = 0;
-	        },
-	        focusAnimate2:function () {
-	            this.width2 = 230
-	        },
-	        blurAnimate3:function () {
-	            this.width3 = 0;
-	        },
-	        focusAnimate3:function () {
-	            this.width3 = 230
-	        },
-	        blurAnimate4:function () {
-	        	this.width4 = 0;
-	        },
-	        focusAnimate4:function () {
-	            if(!this.ifDisable2){
-	        		this.width4 = 230;
-	        	}
-	        },
-	        findKeyWord:function () {
-	            var a = this.getData[this.currentPage-1]['word'];
-	            var p1 = this.getData[this.currentPage-1]['context'][0];
-	            var p2 = this.getData[this.currentPage-1]['context'][1];
-	            var p3 = this.getData[this.currentPage-1]['context'][2];
-	            document.getElementById("p1").innerHTML = p1.replace(a, "<span style='color: red;font-weight: 800;font-size: 15px;'>"+" "+a+""+"</span>");
-	            document.getElementById("p2").innerHTML = p2.replace(a, "<span style='color: red;font-weight: 800;font-size: 15px;'>"+" "+a+""+"</span>");
-	            document.getElementById("p3").innerHTML = p3.replace(a, "<span style='color: red;font-weight: 800;font-size: 15px;'>"+" "+a+""+"</span>");
-	            // 将书便标注的词标红
-	            for(var i=0;i<this.getData2[this.currentPage-1].length;i++){
-	                var b = this.getData2[this.currentPage-1][i];
-	                var p1 = document.getElementById("p1").innerHTML;
-	                var p2 = document.getElementById("p2").innerHTML;
-	                var p3 = document.getElementById("p3").innerHTML;
-	                document.getElementById("p1").innerHTML = p1.replace(b, "<span style='color: red;font-weight: 800;font-size: 15px;'>"+" "+b+""+"</span>");
-	                document.getElementById("p2").innerHTML = p2.replace(b, "<span style='color: red;font-weight: 800;font-size: 15px;'>"+" "+b+""+"</span>");
-	                document.getElementById("p3").innerHTML = p3.replace(b, "<span style='color: red;font-weight: 800;font-size: 15px;'>"+" "+b+""+"</span>");
-	            }
-	        },
-	        createGetData2:function(){
-	            for(var i=0;i<this.getData.length;i++){
-	                this.getData2[i] = [];
-	            }
-	            // console.log(this.getData2);
-	        },
-	        deleteData2:function(index,item){  //删除顺便标注
-	            this.deleteNote(item);
-	            this.getData2[this.currentPage-1].splice(index,1);
-	            console.log(this.sendData);
-	            console.log(this.sendData2);
-	            this.focusAnimate1();
-	            this.focusAnimate2();
-	            this.blurAnimate1();
-	            this.blurAnimate2();
-	        },
-	        addData2:function(e){
-	            if(this.inputData!=""){
-	                this.getData2[this.currentPage-1].push(this.inputData);
-	                this.checkWord(this.inputData); // 过滤一下顺便标注的词是不是现在就在目前的接收到的词中
-	                this.addNote3(this.inputData);
-	                this.inputData = "";
-	                console.log(this.sendData);
-	                console.log(this.sendData2);
-	            }
+			var functionObj2 = [
+				function(){
+					vm.editData[vm.currentPage-1].push(obj);
+				},
+				function(){
+					vm.editData[checkResult.index1][0] = obj;
+					vm.editData[vm.currentPage-1].push(obj);
+				},
+				function(){
+					vm.editData[checkResult.index2].splice(checkResult.index3, 1);
+					vm.editData[vm.currentPage-1].push(obj);	
+				},
+				function(){
+					vm.editData[checkResult.index1][0] = obj;
+					vm.editData[checkResult.index2].splice(checkResult.index3, 1);
+					vm.editData[vm.currentPage-1].push(obj);
+				}
+			]
 
-	        },
-	        cansolAddData2:function(e){
-	            this.inputData = "";
-	        },
-	        checkWord:function(word){ // 过滤一下顺便标注的词是不是现在就在目前的接收到的词中
-	            for(var i=0;i<this.getData.length;i++){
-	                if(word==this.getData[i]['word']){
-	                    this.editData[i]['type'] = this.editData[this.currentPage-1]['type'];
-	                    this.editData[i]['remark'] = this.editData[this.currentPage-1]['remark'];
-	                    return true
-	                }
-	            }
-	            return false;
-	        },
-	        checkWord2:function(){ // 过滤一下顺便标注的词是不是现在就在目前的接收到的词中
-	            for(var x=0;x<this.getData2[this.currentPage-1].length;x++){
-	                this.checkWord(this.getData2[this.currentPage-1][x])
-	            }  
-	        }
-	    },
-	    created:function(){
-	        // 获取数据
-	        var vm = this;
-	        vm.getDataHandle();
-	    },
-	    updated:function(){
-	        this.findKeyWord();
-	    }
-	}
+			
+			functionObj1[checkResult2.status]();
+			functionObj2[checkResult.status]();
+
+			// console.log(this.editData[vm.currentPage-1]);
+		},
+		//撤销顺便标注
+		escAddAnnotated2:function(){
+			this.inputData = "";
+			this.blurAnimate(3);
+		},
+		deleteAddAnnotated2:function(){
+			this.$set(this.pages,this.currentPage-1,this.pages[this.currentPage-1]-1);
+			this.editData[this.currentPage-1].splice(this.pages[this.currentPage-1], 1);
+			for(var i=0;i<this.sendData.length;i++){
+				// console.log(this.sendData[i].word);
+				if(this.currentWord==this.sendData[i].word){
+					this.sendData.splice(i, 1);
+				}
+			}
+		},
+		//检测当前标注的词是否已经标注过
+		check1:function(){
+			if(arguments.length==0){
+				var thisWord = this.editData[this.currentPage - 1][this.pages[this.currentPage - 1] - 1]['word'];
+			}
+
+			if(arguments.length==1){
+				var thisWord = arguments[0];
+			}
+
+			var obj = {
+				status:0,
+				index:0
+			};
+
+			for(var i = 0;i < this.sendData.length;i++){
+				if(thisWord == this.sendData[i]['word']) {
+					obj.index = i;
+					obj.status = 1;
+					return obj;
+				}
+			}
+
+			obj.status = 0;
+			return obj;
+		},
+		//检测当前添加的顺便标注的词是否已经在原数据里面
+		check2:function(word){
+			var obj = {
+				status:0,
+				index1:-1,
+				index2:-1,
+				index3:-1
+			}
+
+			//判断是否在sourceData里面
+			for(var i = 0;i < this.sourceData.length;i ++){
+				if(word == this.sourceData[i].word){
+					obj.index1 = i;
+					obj.status += 1;
+					break;
+				}
+			}
+			//判断是否在之前添加的顺便标注里面
+			for(var i=0;i<this.editData.length;i++){
+				var x = false;
+				for(var j=1;j<this.editData[i].length;j++){
+					if(word == this.editData[i][j]){
+						obj.index2 = i;
+						obj.index3 = j;
+						obj.status += 2;
+						x = true;
+						break
+					}
+				}
+
+				if(x) break;
+			}
+			
+			return obj;
+		},
+		//绑定当前标注下所有标注饿类型
+		bindType:function(){
+			var type = this.editData[this.currentPage-1][this.pages[this.currentPage-1]-1].type;
+
+			for(var x = 0;x<this.editData[this.currentPage-1].length;x++){
+				this.editData[this.currentPage-1][x].type = type;
+			}
+		},
+		//标红当前标注的词
+		markWord:function(){
+            var a = this.editData[this.currentPage-1][this.pages[this.currentPage-1]-1]['word'];
+            var p1 = this.sourceData[this.currentPage-1]['context'][0];
+            var p2 = this.sourceData[this.currentPage-1]['context'][1];
+            var p3 = this.sourceData[this.currentPage-1]['context'][2];
+            document.getElementById("p1").innerHTML = p1.replace(a, "<span style='color: #3399CC;font-weight: 800;font-size: 15px;'>"+" "+a+""+"</span>");
+            document.getElementById("p2").innerHTML = p2.replace(a, "<span style='color: #3399CC;font-weight: 800;font-size: 15px;'>"+" "+a+""+"</span>");
+            document.getElementById("p3").innerHTML = p3.replace(a, "<span style='color: #3399CC;font-weight: 800;font-size: 15px;'>"+" "+a+""+"</span>");
+		},
+		//下一个词
+		nextWord:function(){
+			var ifNext = this.pages[this.currentPage-1] == this.editData[this.currentPage-1].length ? false : true;
+			if(ifNext) {
+				var c = this.pages[this.currentPage-1]
+				this.$set(this.pages,this.currentPage-1,c+1)
+			}
+			// console.log(this.pages[this.currentPage-1]);
+		},
+		//上一个词
+		lastWord:function(){
+			var ifNext = this.pages[this.currentPage-1] == 1 ? false : true;
+			if(ifNext) {
+				var c = this.pages[this.currentPage-1]
+				this.$set(this.pages,this.currentPage-1,c-1)
+			}
+			// console.log(this.pages[this.currentPage-1]);
+		},
+		//调用接口获取后台数据
+		apiHandler:function(){
+			this.$http.get("/api/data").then((response)=>{
+				var data = response.body;
+				this.sourceData = data.data;
+				this.count = data.count;
+				this.currentPage = 1;
+				// console.log(this.count)
+				// console.log(this.sourceData);
+			}, (response)=>{
+				alert(response.status);
+			})
+		},
+		//重设pages数据
+		resetPage:function(){
+			for(var i=0;i<this.editData.length;i++){
+				this.pages.push(1);
+			}
+		},
+		//设置editData
+		resetEditData:function(){
+			this.editData = [];
+			//设置editData
+			for(var i = 0;i < this.sourceData.length;i++){
+				var arr = []
+				arr[0] = {};
+				arr[0]["id"] = this.sourceData[i]["id"] || 0;
+				arr[0]["word"] = this.sourceData[i]["word"] || "";
+				arr[0]["type"] = "";
+				arr[0]["note"] = "";
+				arr[0]["addition"] = "";
+				arr[0]["hyphen"] = false;
+				arr[0]["annotator"] = this.userName;
+				this.editData.push(arr);
+			}
+		},
+		blurAnimate:function(n){
+			this.$set(this.lineWidth,n,0);
+			// this.lineWidth[n] = 0;
+		},
+		focusAnimate:function(n){
+			if(n==2&&this.currentType!="other") return;
+
+			if(n==1&&this.ifHasSupplement==true) return;
+
+			this.$set(this.lineWidth,n,100);
+			// this.lineWidth[n] = 100;
+		}
+	},
+	created:function(){
+		this.apiHandler();	
+	}	
+}
 </script>
 
 <style scoped lang="less">
-	@color3:#3399CC;
-	.myLine(@top:-8px,@height:1px,@width:225px,@backgroudColor:#D2D2D2){
-	  position: relative;
-	  width: @width;
-	  height: @height;
-	  background-color: @backgroudColor;
-	  top: @top;
-	  margin:auto;
+@color3:#3399CC;
+.myLine(@top:-8px,@height:0.1em,@width:100%,@backgroudColor:#D2D2D2){
+  position: relative;
+  width: @width;
+  height: @height;
+  background-color: @backgroudColor;
+  top: @top;
+  margin:auto;
+}
+@media only screen and (min-width: 860px){
+	.input{
+		width:30%;
+		height: 360px;
 	}
-	.main1{
-	.right{
-        float: left;
-        height: 340px;
-        width:530px;
-        .labelBox{
-          margin-bottom: 10px;
-          label{
-            color:#999999;
-            font-size:13px;
-          }
-          p{
-            width: 530px;
-            height:84px;
-            font-size:14px;
-            overflow:auto;
-          }
-          p::-webkit-scrollbar{
-            width:8px;
-          }
-          p::-webkit-scrollbar-thumb{
-            width: 8px;
-            -webkit-border-radius:;
-            -moz-border-radius:;
-            border-radius:10px;
-            background-color: @color3;
-          }
-        }
-      }
-      .left{
-        float: left;
-        height:340px;
-        width: 230px;
-        padding-right: 20px;
-        position: relative;
-      }
-      .buttons{
-        clear: both;
-        width:780px;
-        height: 60px;
-        .buttonsBox{
-          margin:auto;
-          position: relative;
-          top:10px;
-          button{
-            width:140px;
+	.text{
+		width: 70%;
+		height: 360px;
+	}
+}
+
+@media only screen and (min-width: 650px) and (max-width: 859px){
+	.input{
+		width:35%;
+		height: 477px;
+	}
+	.text{
+		width:65%;
+		height: 477px
+	}
+}
+
+//pc端的样式
+@media only screen and (min-width: 650px){
+	.input{
+		float: right;
+		.words{
+			p{
+				span{
+					font-size: 25px;
+				}
+				font-size: 20px;
+			    font-weight: 700;
+			    text-align: center;
+			}
+		}
+		.Hyphen{
+			margin-bottom: 3%;
+			width:95%;
+			height: 10%;
+			label{
+	            display: inline-block;
+	            color: #999999;
+	            font-size:1.5em;
+				position: relative;
+				top: 30%;
+			}
+			input{
+				width: 16px;
+				height: 16px;
+				position: relative;
+				top: 33%;
+				float: right;
+			}
+		}
+		.selectBox{
+			height: 14%;
+			margin-bottom: 3%;
+			width:95%;
+			label{
+				display: inline-block;
+	            color: #999999;
+	            font-size:14px;
+                transform: translate(0,25px);
+            	transition: all 0.2s ease-out;
+			}
+			select{
+	            color: #555;
+	            display: block;
+	            height: 36px;
+	            padding: 7px 0;
+	            font-size: 14px;
+	            line-height: 1.42857;
+	            font-weight: 400;
+	            background-color: transparent;
+	            border: 0;
+	            width:100%;
+	            outline:none;
+				option{
+
+				}
+			}
+		}
+		.supplement{
+			height: 14%;
+			margin-bottom: 3%;
+			width:95%;
+			label{
+	            display: inline-block;
+	            color: #999999;
+	            font-size:1.2em;
+			}
+			input{
+	            width:100%;
+	            height:40px;
+	            border:none;
+	            outline:none;
+			}
+		}
+		.textBox{
+			margin-bottom: 3%;
+			height: 30%;
+			width: 95%;
+			label{
+	            display: inline-block;
+	            color: #999999;
+	            font-size:1.2em;
+			}
+			textarea{
+	            width:100%;
+	            height:82%;
+	            border:none;
+	            outline:none;
+			}
+		}
+		.addText{
+			margin-bottom: 3%;
+			height: 14%;
+			width: 95%;
+			label{
+	            display: inline-block;
+	            color: #999999;
+	            font-size:1.2em;
+			}
+			input{
+	            width:100%;
+	            height:82%;
+	            border:none;
+	            outline:none;
+			}
+		}
+      	.line{
+        	.myLine(-5px);
+
+      	}
+	}
+	.text{
+		float: right;
+		.labelBox{
+          	p{
+            	width: 100%;
+            	height:85%;
+          	}
+			p::-webkit-scrollbar{
+				width:8px;
+			}
+			p::-webkit-scrollbar-thumb{
+				width: 8px;
+				-webkit-border-radius:;
+				-moz-border-radius:;
+				border-radius:10px;
+				background-color: @color3;
+			}
+		}
+	}
+	.buttons{
+		clear: both;
+		width:100%;
+		height: 60px;
+		text-align: center;
+		button{
+            width:18%;
             height:40px;
             background-color: @color3;
             text-align: center;
@@ -496,121 +715,357 @@
             -moz-border-radius: 3px;
             border-radius: 3px;
             transition: box-shadow 0.2s cubic-bezier(0.4, 0, 1, 1), background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-          }
-          button:hover{
-            box-shadow: 0 4px 4px 0 rgba(51, 153, 204, 0.14), 0 3px 1px -2px rgba(244, 67, 54, 0.2), 0 1px 5px 0 rgba(244, 67, 54, 0.12);
-          }
-        }
-      }
-    }
-    .word_note{
-      .left{
-        .selectBox{
-          padding-bottom: 5px;
-          margin: 5px 0 0 0;
-          label{
+            cursor: pointer;
+            position: relative;
+            top: 10px;
+		}
+		button:hover{
+        	box-shadow: 0 4px 4px 0 rgba(51, 153, 204, 0.14), 0 3px 1px -2px rgba(244, 67, 54, 0.2), 0 1px 5px 0 rgba(244, 67, 54, 0.12);
+	    }
+	}
+	.page{
+		height: 40px;
+		line-height: 40px;
+		position: absolute;
+		bottom: 34px;
+		right: 20px;
+		font-size: 2em;
+		span{
+			color:@color3;
+			font-weight: 800;
+			font-size: 2em;
+		}
+	}
+	.count{
+		height: 40px;
+		line-height: 40px;
+		position: absolute;
+		bottom: 30px;
+		left: 20px;
+		font-size: 1.4em;
+		span{
+			color:@color3;
+			font-weight: 800;
+			font-size: 1.4em;
+		}
+	}
+}
+
+//移动端的样式
+@media only screen and (max-width: 649px){
+	.input{
+		// width: 95%;
+		// padding: auto 2.5% auto 2.5%;
+		.words{
+			position: relative;
+			top:-364.5px;
+			p{
+				position: relative;
+				span{
+					display: block;
+					width: 20px;
+					position: absolute;
+					transform:scale(2.3);
+					top:-4px;
+					left: 50%;
+				}
+				.arrowleft{
+					margin-left: -95px;
+					// margin-: -70px;
+				}
+				.arrowright{
+					margin-left: 75px;
+				}
+				font-size: 20px;
+			    font-weight: 700;
+			    text-align: center;
+			}
+		}
+		.Hyphen{
+			float: left;
+			width:45%;
+			height: 30px;
+			margin-bottom: 5px;
+			margin-right: 2%;
+			margin-left: 3%;
+			label{
+	            display: inline-block;
+	            color: #999999;
+	            font-size:1.5em;
+				position: relative;
+				top: 30%;
+			}
+			input{
+				width: 16px;
+				height: 16px;
+				position: relative;
+				top: 33%;
+				float: right;
+			}
+		}
+		.selectBox{
+			float: left;
+			width:45%;
+			height: 50px;
+			margin-bottom: 5px;
+			margin-right: 3%;
+			margin-left: 2%;
+			label{
+				display: inline-block;
+	            color: #999999;
+	            font-size:1.2em;
+	        	transition: all 0.2s ease-out;
+			}
+			select{
+	            color: #555;
+	            display: block;
+	            height:82%;
+	            padding: 7px 0;
+	            font-size: 14px;
+	            line-height: 1.42857;
+	            font-weight: 400;
+	            background-color: transparent;
+	            border: 0;
+	            width:100%;
+	            outline:none;
+				option{
+
+				}
+			}
+		}
+		.supplement{
+			float: left;
+			width:45%;
+			height: 50px;
+			margin-bottom: 5px;
+			margin-right: 2%;
+			margin-left: 3%;
+			label{
+	            display: inline-block;
+	            color: #999999;
+	            font-size:1.2em;
+			}
+			input{
+	            width:100%;
+	            height:40px;
+	            border:none;
+	            outline:none;
+			}
+		}
+		.textBox{
+			float: left;
+			width:45%;
+			height: 80px;
+			margin-bottom: 5px;
+			margin-right: 3%;
+			margin-left: 2%;
+			label{
+	            display: inline-block;
+	            color: #999999;
+	            font-size:1.2em;
+			}
+			textarea{
+	            width:100%;
+	            height:82%;
+	            border:none;
+	            outline:none;
+			}
+		}
+		.addText{
+			float: left;
+			width:45%;
+			height: 50px;
+			margin-bottom: 5px;
+			margin-right: 2%;
+			margin-left: 3%;
+			label{
+	            display: inline-block;
+	            color: #999999;
+	            font-size:1.2em;
+			}
+			input{
+	            width:100%;
+	            height:82%;
+	            border:none;
+	            outline:none;
+			}
+		}
+	}
+	.text{
+		position: relative;
+		top:27px;
+		.labelBox{
+			margin-bottom: 3px;
+		}
+		label{
+			display: block;
+			text-align: center
+		}
+      	p{
+        	width: 96%;
+        	padding:1% 2%;
+        	height:95px;
+        	font-size:14px;
+        	overflow:auto;
+      	}
+	}
+	.buttons{
+		button{
+			height: 30px;
+			width:32.7%;
+			display: inline-block;
+			border:none;
+		}
+	}
+	.page{
+		height: 26px;
+		line-height: 26px;
+		position: absolute;
+		top: 73px;
+		right: 20px;
+		font-size: 1.5em;
+	}
+	.count{
+		height: 40px;
+		line-height: 40px;
+		position: absolute;
+		top: 0px;
+		right: 20px;
+		font-size: 1em;
+		span{
+			color:@color3;
+			font-weight: 800;
+			font-size: 1.2em;
+		}
+	}
+}
+//公共的样式
+#type{
+	width: 100%;
+	overflow: auto;
+}
+.input{
+	.words{
+		span{
+
+		}
+		p{
+			img{
+				position: relative;
+				top: -3px;
+				left: -4px;
+				cursor: pointer;
+			}
+			font-size: 20px;
+		    font-weight: 700;
+		    text-align: center;
+		    span{
+		    	cursor: pointer;
+		    }
+		}
+		span{
+
+		}
+	}
+	.Hyphen{
+		margin-bottom: 3%;
+		label{
             display: inline-block;
             color: #999999;
-            font-size:14px;
-            -webkit-transform: translate(0,25px);
-            -moz-transform: translate(0,25px);
-            -ms-transform: translate(0,25px);
-            -o-transform: translate(0,25px);
-            transform: translate(0,25px);
-            transition: all 0.2s ease-out;
-          }
-          select{
+            font-size:1.5em;
+			position: relative;
+			top: 30%;
+		}
+		input{
+			width: 16px;
+			height: 16px;
+			position: relative;
+			top: 33%;
+			float: right;
+		}
+	}
+	.selectBox{
+		label{
+			display: inline-block;
+            color: #999999;
+        	transition: all 0.2s ease-out;
+		}
+		select{
             color: #555;
             display: block;
-            height: 36px;
+            height:82%;
             padding: 7px 0;
             font-size: 14px;
             line-height: 1.42857;
             font-weight: 400;
             background-color: transparent;
             border: 0;
-            margin-bottom: 7px;
-            width:230px;
+            width:100%;
             outline:none;
-          }
-          .line{
-            .myLine();
-          }
-          .strongLine{
-            .myLine(-11px,2px,0px,@color3);
-          }
-        }
-        p{
-          font-size: 20px;
-          font-weight: 700;
-          img{
-          	width: 15px;
-          	height: 15px;
-          	cursor:  pointer;
-          	position: relative;
-          	top:1px;
-          }
-        }
-        .addText{
-          label{
+			option{
+
+			}
+		}
+	}
+	.supplement{
+		label{
             display: inline-block;
             color: #999999;
-            font-size:12px;
-          }
-          input{
-            width:230px;
+            font-size:1.2em;
+		}
+		input{
+            width:100%;
             height:40px;
             border:none;
             outline:none;
-          }
-          .line{
-            .myLine(-5px);
-          }
-          .strongLine{
-            -webkit-transition: width 0.2s linear;
-            -moz-transition: width 0.2s linear;
-            -ms-transition: width 0.2s linear;
-            -o-transition: width 0.2s linear;
-            transition: width 0.2s linear;
-            .myLine(-6px,2px,0px,@color3)
-          }
-        }
-        .textBox{
-          margin-top: 0px;
-          label{
+		}
+	}
+	.textBox{
+		label{
             display: inline-block;
             color: #999999;
-            font-size:12px;
-          }
-          textarea{
-            width:230px;
-            height:80px;
+            font-size:1.2em;
+		}
+		textarea{
+            width:100%;
+            height:82%;
             border:none;
             outline:none;
-          }
-          .line{
-            .myLine(-5px);
-          }
-          .strongLine{
-            .myLine(-6px,2px,0px,@color3)
-          }
-          textarea::-webkit-scrollbar{
-            width:8px;
-          }
-          textarea::-webkit-scrollbar-thumb{
-            width: 8px;
-            background-color: @color3;
-            -webkit-border-radius:10px;
-            -moz-border-radius:10px;
-            border-radius:10px;
-            border-bottom: 1px solid #D2D2D2;
-          }
+		}
+	}
+	.addText{
+		label{
+            display: inline-block;
+            color: #999999;
+            font-size:1.2em;
+		}
+		input{
+            width:100%;
+            height:82%;
+            border:none;
+            outline:none;
+		}
+	}
+  	.line{
+    	.myLine(-5px);
+  	}
+	.strongLine{
+		.myLine(-7px,2px,100%,@color3);
+		transition:all 0.2 ease-out;
+	}		
+}
+.text{
+	.labelBox{
+		height: 30%;
+		label{
+			height:15%;
+            color:#999999;
+            font-size:13px;
         }
-      }
-      .buttons{
-        .buttonsBox{
-          width:430px;
-        }
-      }
-    }
+      	p{
+        	font-size:14px;
+        	overflow:auto;
+      	}
+	}
+}
 </style>

@@ -1,90 +1,110 @@
 <template>
-	<div class="tabs">
+	<div id="navbar">
 		<ul>
-			<li v-on:click="changeTabLeft"><a href="#">类型标注</a></li>
-			<li v-on:click="changeTabRight"><a href="#">缩略语标注</a></li>
+			<li :class="{active:tabStatus=='type'}" @click="changeTabToType">类型标注</li>
+			<li :class="{active:tabStatus=='abbr'}" @click="changeTabToAbbr">缩略语标注</li>
 		</ul>
-		<div class="slider">{{currentTypeText[currentType]}}</div>
+		<div class="slider" :style="{left:sliderPosition+'%'}">{{sliderTitle[tabStatus]}}</div>
 	</div>
 </template>
 
 <script>
-	import $ from 'jquery'
-	export default {
-		data:function(){
-	        return{
-	            currentType:0,
-	            currentTypeText:["类型标注","缩略语标注"]
-	        }  
-	    },
-	    methods:{
-	        changeTabLeft:function(){
-	            if(this.currentType==1){
-	                $(".slider").animate({left:'-40px'},300);
-	                $(".slider").animate({left:'-10px'},100);
-	                this.currentType=0
-	                this.$emit("turn_left")
-	            }
-	        },
-	        changeTabRight:function(){
-	            if(this.currentType==0){
-	                $(".slider").animate({left:'440px'},300);
-	                $(".slider").animate({left:'410px'},100);
-	                this.currentType=1;
-	                this.$emit("turn_right");
-	            }
-	        }
-	    },
-	}
-	
+import store from '../store/index.js'
+import {mapMutations} from 'vuex'
+
+export default {
+	data:function(){
+		return {
+			sliderTitle:{
+				"abbr":"缩略语标注",
+				"type":"类型标注"
+			}
+		}
+	},
+	computed:{
+		tabStatus:function(){
+			return this.$store.state.tabStatus
+		},
+		sliderPosition:{
+			get:function(){
+				return this.tabStatus == "type" ? "-1" : "49";
+	 		}
+		}
+	},
+	methods:{
+		...mapMutations([
+			'changeTabToAbbr',
+			'changeTabToType'
+		]),
+	},
+	store,
+}
 </script>
 
 <style scoped lang="less">
-	@color3:#3399CC;
-	.tabs{
+@color3:#3399CC;
+//pc端的样式
+@media only screen and (min-width: 650px){
+	#navbar{
 		position: relative;
 		ul{
 			background-color: rgba(200, 200, 200, 0.2);
 			overflow: auto;
+			height: 37.6px;
 			li{
 				list-style: none;
 				width: 50%;
+				line-height: 37.6px;
 				text-align: center;
 				float: left;
-			a{
-				border: 0 !important;
-				border-radius: 0;
-				line-height: 18px;
-				text-transform: uppercase;
-				font-size: 16px;
-				font-weight: 500;
-				min-width: 100px;
-				text-align: center;
-				color: #555555 !important;
-				text-decoration: none;
-				position: relative;
-				display: block;
-				padding: 10px 15px;
+				font-size: 1.6em;
+				cursor: pointer;
 			}
 		}
+		.slider{
+			width: 52%;
+			height: 45px;
+			line-height: 45px;
+			font-size: 1.8em;
+			text-align: center;
+			font-weight: 800;
+			color: #fff;
+			background-color: @color3;
+			border-radius: 4px;
+			box-shadow: 0 16px 26px -10px #3399CC, 0 4px 25px 0px rgba(0, 0, 0, 0.12), 0 8px 10px -5px rgba(244, 67, 54, 0.2);
+			position: absolute;
+			top: -3.9px;
+			cursor: pointer;
+			transition: left 0.2s linear;
+		}
+	}
+}
+//移动端的样式
+@media only screen and (max-width: 649px){
+	#navbar{
+		position: relative;
+		ul{
+			background-color: rgba(200, 200, 200, 0.2);
+			overflow: auto;
+			height: 30px;
+			li{
+				list-style: none;
+				width: 50%;
+				line-height: 30px;;
+				text-align: center;
+				float: left;
+				font-size: 1.8em;
+			}
+			.active{
+				background-color: @color3;
+				color: #fff;
+			}
 		}
 		.slider{
-			position: absolute;
-			text-align: center;
-			padding: 12px;
-			font-size: 17px;
-			text-transform: uppercase;
-			-webkit-font-smoothing: subpixel-antialiased;
-			top: -4px;
-			left: -10px;
-			border-radius: 4px;
-			color: #FFFFFF;
-			cursor: pointer;
-			font-weight: 500;
-			background-color: @color3;
-			box-shadow: 0 16px 26px -10px #3399CC, 0 4px 25px 0px rgba(0, 0, 0, 0.12), 0 8px 10px -5px rgba(244, 67, 54, 0.2);
-			width: 381px;
-			height: 21px;
+			display: none;
 		}
-	}	
+	}
+}
+
+
 </style>

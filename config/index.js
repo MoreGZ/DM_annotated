@@ -1,6 +1,6 @@
 
 'use strict'
-// Template version: 1.1.1
+// Template version: 1.1.3
 // see http://vuejs-templates.github.io/webpack for documentation.
 
 const path = require('path')
@@ -27,7 +27,7 @@ module.exports = {
   },
   dev: {
     env: require('./dev.env'),
-    port: process.env.PORT || 8080,
+    port: process.env.PORT || 8081,
     autoOpenBrowser: true,
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',

@@ -26,22 +26,25 @@ const proxyTable = config.dev.proxyTable
 const app = express()
 
 var appData = require("../data.json");
-var data = appData.data;
+var data = appData;
 
 var apiRoutes = express.Router();
 
-apiRoutes.post("/data", function (req,res) {
-  var response = {
-    count : 0,
-    data : data
-  };
-  console.log(response);
+apiRoutes.get("/data", function (req,res) {
+  var response = data
   res.end(JSON.stringify(response));
-  // res.json({
-  //   count : 0,
-  //   data : data
-  // })
 });
+
+apiRoutes.post("/sendData",function(req,res){
+  var x = req.body;
+  console.log(x);
+  var obj = {
+    status:1,
+    count:40
+  }
+
+  res.end(JSON.stringify(obj))
+})
 
 app.use('/api',apiRoutes);
 
@@ -72,7 +75,7 @@ app.use(hotMiddleware)
 
 // proxy api requests
 Object.keys(proxyTable).forEach(function (context) {
-  const options = proxyTable[context]
+  let options = proxyTable[context]
   if (typeof options === 'string') {
     options = { target: options }
   }
