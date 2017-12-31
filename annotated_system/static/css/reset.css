@@ -1,0 +1,19 @@
+*{
+  padding: 0px;
+  margin: 0px;
+}
+html{
+  height:100%;
+}
+body{
+  width:100%;
+  height:100%;
+  position: relative;
+
+}
+body{
+	background: -webkit-linear-gradient(left top,white, lightgray); /* Safari 5.1 - 6.0 */
+	background: -o-linear-gradient(bottom right,white, lightgray); /* Opera 11.1 - 12.0 */
+	background: -moz-linear-gradient(bottom right,white, lightgray); /* Firefox 3.6 - 15 */
+	background: linear-gradient(bottom right,white, lightgray); /* 标准的语法 */
+}
